@@ -204,4 +204,7 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
     public double getCurTime(){
         return this.curTime;
     }
+    public void hello(){
+
+    }
 }

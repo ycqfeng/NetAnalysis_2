@@ -34,6 +34,7 @@ public class Channel implements SimulatorInterface, InterfacePrintControlRegiste
         this.subChannels = new SubChannel[sumSubChannelsNumber];
         for (int i = 0 ; i < sumSubChannelsNumber ; i++){
             this.subChannels[i] = new SubChannel(this.printControl);
+            this.subChannels[i].setChannel(this,i);
             this.getSimulator().register(this.subChannels[i]);
         }
     }

@@ -103,7 +103,7 @@ public abstract class StatsNode {
 
     public StatsNode getEnd(){
         StatsNode end = this;
-        while (end.getEnd() != null){
+        while (end.getNext() != null){
             end = end.getNext();
         }
         return end;

@@ -3,6 +3,7 @@ package com.company;
 import han_cognitiveChannel_multi_0_2.Channel;
 import han_cognitiveChannel_multi_0_2.PrimaryUser;
 import han_cognitiveChannel_multi_0_2.statsComponent.PURecordNode;
+import han_cognitiveChannel_multi_0_2.statsComponent.SubChannelRecordNode;
 import han_simulatorComponents.Simulator;
 import printControlComponents.PrintControl;
 
@@ -47,7 +48,22 @@ public class Main {
             sum +=state[i];
             System.out.println(str);
         }
-
         System.out.println(sum);
+
+        SubChannelRecordNode subChannelRecordNode = channel.getSubChannel(0).getRecords();
+        state = new double[2];
+        while (subChannelRecordNode != null){
+            if (subChannelRecordNode.getOccupyState()){
+                state[0] += subChannelRecordNode.getTimeDuration();
+            }
+            else
+            {
+                state[1] += subChannelRecordNode.getTimeDuration();
+            }
+            subChannelRecordNode = subChannelRecordNode.getNext();
+        }
+        System.out.println(state[0]);
+        System.out.println(state[1]);
+
     }
 }

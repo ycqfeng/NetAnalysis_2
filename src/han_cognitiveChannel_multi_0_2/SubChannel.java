@@ -1,5 +1,6 @@
 package han_cognitiveChannel_multi_0_2;
 
+import han_cognitiveChannel_multi_0_2.statsComponent.SubChannelRecordNode;
 import han_simulatorComponents.SimulatorInterface;
 import printControlComponents.InterfacePrintControlRegisterInstance;
 import printControlComponents.PrintControl;
@@ -14,6 +15,9 @@ public class SubChannel implements SimulatorInterface, InterfacePrintControlRegi
     private InterfaceSubChannelNotify[] notifies;
 
     boolean occupyState;
+
+    //记录
+    SubChannelRecordNode records;
 
     PrintControl printControl;
 
@@ -33,11 +37,60 @@ public class SubChannel implements SimulatorInterface, InterfacePrintControlRegi
         this.occupyState = false;
     }
 
+    public SubChannelRecordNode getRecords() {
+        if (this.records == null){
+            return null;
+        }
+        else{
+            return records.getHead();
+        }
+    }
+
     public void releaseSubChannel(){
+        //完成之前记录
+        if (this.records != null){
+            if (!this.records.isComplete()){
+                this.records.setTimeEnd(this.channel.getSimulator().getCurTime());
+            }
+        }
+        this.occupyState = false;
+        //创建新纪录
+        if (this.records == null){
+            this.records = new SubChannelRecordNode();
+            this.records.setOccupyState(this.occupyState);
+            this.records.setTimeStart(this.channel.getSimulator().getCurTime());
+        }
+        else{
+            SubChannelRecordNode nextRecordNode = new SubChannelRecordNode();
+            nextRecordNode.setOccupyState(this.occupyState);
+            nextRecordNode.setTimeStart(this.channel.getSimulator().getCurTime());
+            this.records.addSingleToEnd(nextRecordNode);
+            this.records = this.records.getEnd();
+        }
 
     }
 
     public void occupySubChannel(){
+        //完成之前记录
+        if (this.records != null){
+            if (!this.records.isComplete()){
+                this.records.setTimeEnd(this.channel.getSimulator().getCurTime());
+            }
+        }
+        this.occupyState = true;
+        //创建新纪录
+        if (this.records == null){
+            this.records = new SubChannelRecordNode();
+            this.records.setOccupyState(this.occupyState);
+            this.records.setTimeStart(this.channel.getSimulator().getCurTime());
+        }
+        else{
+            SubChannelRecordNode nextRecordNode = new SubChannelRecordNode();
+            nextRecordNode.setOccupyState(this.occupyState);
+            nextRecordNode.setTimeStart(this.channel.getSimulator().getCurTime());
+            this.records.addSingleToEnd(nextRecordNode);
+            this.records = this.records.getEnd();
+        }
 
     }
 
@@ -76,11 +129,27 @@ public class SubChannel implements SimulatorInterface, InterfacePrintControlRegi
 
     @Override
     public void simulatorStart() {
-
+        String str;
+        if (this.channel == null){
+            str = this.getClass().getName();
+            str += "Can't start the SubChannel "+ this.indexChannel+", Because this.channel is equal to null";
+            this.printControl.printlnErrorInfo(this,str);
+        }
+        //记录
+        this.records = new SubChannelRecordNode();
+        this.records.setOccupyState(this.occupyState);
+        this.records.setTimeStart(this.channel.getSimulator().getCurTime());
+        //启动成功
+        str = this.getClass().getName();
+        str += "PrimaryUser start successfully.";
+        this.printControl.printlnLogicInfo(this,str);
     }
 
     @Override
     public void simulatorEnd() {
+        if (!this.records.isComplete()){
+            this.records.setTimeEnd(this.channel.getSimulator().getCurTime());
+        }
 
     }
 }

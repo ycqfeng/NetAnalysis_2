@@ -149,7 +149,7 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
             nextRecordNode.setState(this.getJobQueueLength());
             nextRecordNode.setTimeStart(this.simulator.getCurTime());
             this.records.addSingleToEnd(nextRecordNode);
-            this.records = (PURecordNode) this.records.getNext();
+            this.records = this.records.getEnd();
         }
         //判断是否结束占用信道
         if (this.jobQueueLength == 0){

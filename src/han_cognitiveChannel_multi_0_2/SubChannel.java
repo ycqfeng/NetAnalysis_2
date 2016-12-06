@@ -23,6 +23,7 @@ public class SubChannel implements SimulatorInterface, InterfacePrintControlRegi
 
     public SubChannel(PrintControl printControl){
         this.printControl = printControl;
+        this.printControl.register(this);
     }
     public void setChannel(Channel channel, int indexChannel){
         if (channel == null){
@@ -54,6 +55,12 @@ public class SubChannel implements SimulatorInterface, InterfacePrintControlRegi
             }
         }
         this.occupyState = false;
+        //通知PU、SU
+        if (this.notifies != null){
+            for (int i = 0 ; i < this.notifies.length ; i++){
+                this.notifies[i].subChannelIsRelease(this);
+            }
+        }
         //创建新纪录
         if (this.records == null){
             this.records = new SubChannelRecordNode();
@@ -78,6 +85,12 @@ public class SubChannel implements SimulatorInterface, InterfacePrintControlRegi
             }
         }
         this.occupyState = true;
+        //通知PU、SU
+        if (this.notifies != null){
+            for (int i = 0 ; i < this.notifies.length ; i++){
+                this.notifies[i].subChannelIsOccupy(this);
+            }
+        }
         //创建新纪录
         if (this.records == null){
             this.records = new SubChannelRecordNode();

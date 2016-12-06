@@ -2,6 +2,7 @@ package com.company;
 
 import han_cognitiveChannel_multi_0_2.Channel;
 import han_cognitiveChannel_multi_0_2.PrimaryUser;
+import han_cognitiveChannel_multi_0_2.SecondaryUser;
 import han_cognitiveChannel_multi_0_2.statsComponent.PURecordNode;
 import han_cognitiveChannel_multi_0_2.statsComponent.SubChannelRecordNode;
 import han_simulatorComponents.Simulator;
@@ -27,7 +28,18 @@ public class Main {
         primaryUser.setParameter(3, 7);
         primaryUser.setSubChannel(channel, 0);
 
-        printControl.setPrintLogicInfoState(primaryUser, true);
+        SecondaryUser secondaryUser = new SecondaryUser(printControl);
+        secondaryUser.setSimulator(simulator);
+        secondaryUser.setChannel(channel);
+        secondaryUser.setTimeFrame(1);
+        secondaryUser.setTimeCognitive(0.2);
+
+        printControl.setPrintLogicInfoState(primaryUser, false);
+        printControl.setPrintLogicInfoState(secondaryUser, true);
+        printControl.setPrintLogicInfoState(secondaryUser.getEventCognitiveArrive(), false);
+        printControl.setPrintLogicInfoState(secondaryUser.getEventCognitiveDepart(), false);
+        printControl.setPrintLogicInfoState(secondaryUser.getEventTransArrive(), false);
+        printControl.setPrintLogicInfoState(secondaryUser.getEventTransDepart(), false);
 
         simulator.start();
 

@@ -110,7 +110,7 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
             return true;
         }
         else{
-            SimulatorInterface[] temp = new SimulatorInterface[this.interfaces.length];
+            SimulatorInterface[] temp = new SimulatorInterface[this.interfaces.length+1];
             System.arraycopy(this.interfaces, 0, temp, 0, this.interfaces.length);
             temp[temp.length-1] = simulatorInterface;
             this.interfaces = temp;
@@ -130,11 +130,12 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
     }
     //增加一个事件
     public void addEvent(Event event){
+        event.setSimulator(this);
         if (event.getTimeExecute() < this.curTime){
-            String error = "Event's timeExecute is less than this.curTime.";
+            String error = this.getClass().getName();
+            error += "Event's timeExecute is less than this.curTime.";
             this.printControl.printlnErrorInfo(this,error);
         }
-        event.setSimulator(this);
         Event temp = this.eventQueueHead;
         if (temp != null){
             while (temp.getTimeExecute() < event.getTimeExecute()){
@@ -145,7 +146,7 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
                     break;
                 }
             }
-            temp.addToNext(event);
+            temp.addToLast(event);
             return;
         }
         else{
@@ -204,7 +205,9 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
     public double getCurTime(){
         return this.curTime;
     }
-    public void hello(){
 
+    public void setPrintControl(PrintControl printControl) {
+        this.printControl = printControl;
+        this.printControl.register(this);
     }
 }

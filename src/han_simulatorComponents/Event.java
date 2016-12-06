@@ -6,6 +6,7 @@ package han_simulatorComponents;
 public class Event {
     //时间
     private double timeExecute;
+    private double timeInter;
     //节点
     private Event last;
     private Event next;
@@ -13,6 +14,10 @@ public class Event {
     private Simulator simulator;
     private EventInterface eventInterface;
 
+    public Event(){
+        this.timeInter = -1;
+        this.timeExecute = 0;
+    }
     //设置\获取接口
     public void setEventInterface(EventInterface eventInterface){
         this.eventInterface = eventInterface;
@@ -101,6 +106,9 @@ public class Event {
     }
     public void setSimulator(Simulator simulator){
         this.simulator = simulator;
+        if (this.timeInter >= 0){
+            this.timeExecute = this.simulator.getCurTime() + this.timeInter;
+        }
     }
     //设置、获取执行时间
     public void setTimeExecute(double timeExecute){
@@ -111,6 +119,6 @@ public class Event {
     }
     //设置间隔时间
     public void  setInterTime(double interTime){
-        this.timeExecute = this.simulator.getCurTime() + interTime;
+        this.timeInter = interTime;
     }
 }

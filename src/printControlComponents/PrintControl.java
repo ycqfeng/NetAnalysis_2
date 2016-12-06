@@ -132,6 +132,7 @@ public class PrintControl {
         else{
             PrintControlNode[] temp = new PrintControlNode[this.nodes.length+1];
             System.arraycopy(this.nodes,0,temp,0,this.nodes.length);
+            temp[temp.length-1] = new PrintControlNode();
             temp[temp.length-1].setInstances(instance);
             this.nodes = temp;
             return true;

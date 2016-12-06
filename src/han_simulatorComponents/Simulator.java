@@ -12,7 +12,6 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
     double stopTime;
     //事件链表
     Event eventQueueHead;
-    Event nextEvent;
     Event passQueueTail;
     //注册实体接口
     SimulatorInterface[] interfaces;
@@ -29,7 +28,26 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
             this.printControl.printlnErrorInfo(this,str);
             return;
         }
-        double percent;
+        Event curEvent;
+        double progress;
+        double difProgress = 1;
+        while (!this.isFinish(this.eventQueueHead)){
+            this.curTime = this.eventQueueHead.getTimeExecute();
+            if (this.stopTime > 0){
+                progress = 100*this.curTime/this.stopTime;
+                if (progress - difProgress > 1){
+                    System.out.println(progress+"%");
+                    difProgress = Math.floor(progress);
+                }
+            }
+            curEvent = this.eventQueueHead;
+            this.eventQueueHead = this.eventQueueHead.getNext();
+            curEvent.setNextToNULL();
+            curEvent.getEventInterface().run();
+            this.addToPassQueueTail(curEvent);
+        }
+
+        /*double percent;
         int ipercent = 0;
         this.nextEvent = this.getAndMoveEventQueueHead();
         while (!this.isFinish(this.nextEvent)){
@@ -47,7 +65,7 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
             if (this.nextEvent == null){
                 break;
             }
-        }
+        }*/
     }
     //开始准备并执行事件
     public void start(){
@@ -137,7 +155,9 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
             this.printControl.printlnErrorInfo(this,error);
         }
         Event temp = this.eventQueueHead;
+        //若头非空
         if (temp != null){
+            //若头小于事件，寻找下一个，直到尾部
             while (temp.getTimeExecute() < event.getTimeExecute()){
                 if (temp.getNext() != null){
                     temp = temp.getNext();
@@ -146,9 +166,17 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
                     break;
                 }
             }
-            temp.addToLast(event);
+            //若当前小于事件，插入当前后
+            if (temp.getTimeExecute() < event.getTimeExecute()){
+                temp.addToNext(event);
+            }
+            else{
+                temp.addToLast(event);
+            }
+            this.eventQueueHead = this.eventQueueHead.getHead();
             return;
         }
+        //若头为空
         else{
             this.eventQueueHead = event;
             return;
@@ -168,9 +196,6 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
         if (this.stopTime != 0){
             return this.stopTime < event.getTimeExecute();
         }
-        if (nextEvent == null){
-            return true;
-        }
         else{
             return false;
         }
@@ -183,16 +208,6 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
         }
         this.passQueueTail.addToEnd(event);
         this.passQueueTail = this.passQueueTail.getEnd();
-    }
-    private Event getAndMoveEventQueueHead(){
-        Event event = this.eventQueueHead;
-        if (this.eventQueueHead != null){
-            this.eventQueueHead = this.eventQueueHead.getNext();
-        }
-        if (event != null){
-            event.setNextToNULL();
-        }
-        return event;
     }
     //设置、获取停止时间
     public void setStopTime(double stopTime){

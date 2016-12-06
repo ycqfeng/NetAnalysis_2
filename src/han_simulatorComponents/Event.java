@@ -73,7 +73,7 @@ public class Event {
         else{
             Event temp = this.getLast();
             this.last = event;
-            this.last.next = event;
+            this.last.next = this;
             temp.next = event;
             temp.next.last = temp;
             return;

@@ -15,7 +15,7 @@ public abstract class StatsNode {
             System.out.println(" This.statsNode is not single.");
         }
         StatsNode headNode = this;
-        while (headNode.last != null){
+        while (headNode.getLast() != null){
             headNode = headNode.getLast();
         }
         headNode.addSingleToLast(statsNode);
@@ -27,7 +27,7 @@ public abstract class StatsNode {
             System.out.println(" This.statsNode is not single.");
         }
         StatsNode endNode = this;
-        while (endNode != null){
+        while (endNode.getNext() != null){
             endNode = endNode.getNext();
         }
         endNode.addSingleToNext(statsNode);
@@ -91,5 +91,21 @@ public abstract class StatsNode {
 
     public StatsNode getNext() {
         return next;
+    }
+
+    public StatsNode getHead(){
+        StatsNode head = this;
+        while (head.getLast() != null){
+            head = head.getLast();
+        }
+        return head;
+    }
+
+    public StatsNode getEnd(){
+        StatsNode end = this;
+        while (end.getEnd() != null){
+            end = end.getNext();
+        }
+        return end;
     }
 }

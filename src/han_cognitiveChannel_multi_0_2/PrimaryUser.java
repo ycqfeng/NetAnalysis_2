@@ -1,5 +1,7 @@
 package han_cognitiveChannel_multi_0_2;
 
+import han_cognitiveChannel_multi_0_2.statsComponent.PURecordNode;
+import han_cognitiveChannel_multi_0_2.statsComponent.StatsNode;
 import han_simulatorComponents.Event;
 import han_simulatorComponents.EventInterface;
 import han_simulatorComponents.Simulator;
@@ -24,6 +26,9 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
     EventArrive eventArrive;
     EventDepart eventDepart;
 
+    //记录
+    PURecordNode records;
+
     PrintControl printControl;
 
     public PrimaryUser(PrintControl printControl){
@@ -37,6 +42,15 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
         this.jobQueueLength = 0;
         this.eventArrive = new EventArrive(this, this.printControl);
         this.eventDepart = new EventDepart(this, this.printControl);
+    }
+
+    public PURecordNode getRecords(){
+        if (this.records == null){
+            return null;
+        }
+        else{
+            return (PURecordNode) this.records.getHead();
+        }
     }
 
     public EventArrive getEventArrive() {
@@ -82,11 +96,31 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
         this.subChannel = channel.getSubChannel(indexSubChannel);
         return;
     }
-    //队列赠一
+    //队列增一
     public void arriveToQueue(){
+        //完成记录
+        if (this.records != null){
+            if (!this.records.isComplete()){
+                this.records.setTimeEnd(this.getSimulator().getCurTime());
+            }
+        }
+        //增一
         this.jobQueueLength += 1;
         String str = this.getSimulator().getCurTime() +"s, One job arrive to PU.";
         this.printControl.printlnLogicInfo(this, str);
+        //记录
+        if (this.records == null){
+            this.records = new PURecordNode();
+            this.records.setState(this.getJobQueueLength());
+            this.records.setTimeStart(this.simulator.getCurTime());
+        }
+        else{
+            PURecordNode nextNode = new PURecordNode();
+            nextNode.setState(this.getJobQueueLength());
+            nextNode.setTimeStart(this.simulator.getCurTime());
+            this.records.addSingleToEnd(nextNode);
+            this.records = (PURecordNode) this.records.getNext();
+        }
         //判断是否开始占用信道
         if (this.jobQueueLength == 1){
             this.subChannel.occupySubChannel();
@@ -94,9 +128,29 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
     }
     //队列减一
     public void departFromQueue(){
+        //完成记录
+        if (this.records != null){
+            if (!this.records.isComplete()){
+                this.records.setTimeEnd(this.getSimulator().getCurTime());
+            }
+        }
+        //减一
         this.jobQueueLength -= 1;
         String str = this.getSimulator().getCurTime() + "s, One job depart from PU.";
         this.printControl.printlnLogicInfo(this,str);
+        //记录
+        if (this.records == null){
+            this.records = new PURecordNode();
+            this.records.setState(this.getJobQueueLength());
+            this.records.setTimeStart(this.simulator.getCurTime());
+        }
+        else{
+            PURecordNode nextRecordNode = new PURecordNode();
+            nextRecordNode.setState(this.getJobQueueLength());
+            nextRecordNode.setTimeStart(this.simulator.getCurTime());
+            this.records.addSingleToEnd(nextRecordNode);
+            this.records = (PURecordNode) this.records.getNext();
+        }
         //判断是否结束占用信道
         if (this.jobQueueLength == 0){
             this.subChannel.releaseSubChannel();
@@ -130,17 +184,22 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
              str += "Can't start the PrimaryUser, Because this.jobQueueLength is less than zero.";
             this.printControl.printlnErrorInfo(this,str);
         }
+        //到达事件
         Event nextArrive = new Event();
         nextArrive.setInterTime(RandomNumber.getRandomExp(this.getRateArrive()));
         nextArrive.setEventInterface(this.getEventArrive());
         this.simulator.addEvent(nextArrive);
-
+        //离开事件
         if (this.jobQueueLength > 0){
             Event nextDepart = new Event();
             nextDepart.setInterTime(RandomNumber.getRandomExp(this.getRateDepart()));
             nextDepart.setEventInterface(this.getEventDepart());
             this.simulator.addEvent(nextDepart);
         }
+        //记录
+        this.records = new PURecordNode();
+        this.records.setState(this.jobQueueLength);
+        this.records.setTimeStart(this.simulator.getCurTime());
 
 
         str = this.getClass().getName();
@@ -151,6 +210,9 @@ public class PrimaryUser implements SimulatorInterface, InterfaceSubChannelNotif
 
     @Override
     public void simulatorEnd() {
+        if (!this.records.isComplete()){
+            this.records.setTimeEnd(this.simulator.getCurTime());
+        }
 
     }
 

@@ -1,5 +1,6 @@
 package han_cognitiveChannel_multi_0_2;
 
+import han_cognitiveChannel_multi_0_2.statsComponent.SURecordNode;
 import han_simulatorComponents.Event;
 import han_simulatorComponents.EventInterface;
 import han_simulatorComponents.Simulator;
@@ -31,6 +32,11 @@ public class SecondaryUser implements InterfacePrintControlRegisterInstance,
     EventTransArrive eventTransArrive;
     EventTransDepart eventTransDepart;
 
+    //记录
+    SURecordNode records;
+    SURecordNode cognitiveRecords;
+    SURecordNode transRecords;
+
     PrintControl printControl;
 
     public SecondaryUser(PrintControl printControl){
@@ -48,6 +54,36 @@ public class SecondaryUser implements InterfacePrintControlRegisterInstance,
         eventCognitiveDepart = new EventCognitiveDepart(this, this.printControl);
         eventTransArrive = new EventTransArrive(this, this.printControl);
         eventTransDepart = new EventTransDepart(this, this.printControl);
+    }
+
+    public SURecordNode getRecords() {
+        /*if (this.records == null){
+            return null;
+        }
+        else{
+            return this.records.getHead();
+        }*/
+        return this.records;
+    }
+
+    public void setRecords(SURecordNode records) {
+        this.records = records;
+    }
+
+    public SURecordNode getTransRecords() {
+        return transRecords;
+    }
+
+    public void setTransRecords(SURecordNode transRecords) {
+        this.transRecords = transRecords;
+    }
+
+    public SURecordNode getCognitiveRecords() {
+        return cognitiveRecords;
+    }
+
+    public void setCognitiveRecords(SURecordNode cognitiveRecords) {
+        this.cognitiveRecords = cognitiveRecords;
     }
 
     public void setSimulator(Simulator simulator) {
@@ -157,6 +193,17 @@ public class SecondaryUser implements InterfacePrintControlRegisterInstance,
 
     @Override
     public void simulatorEnd() {
+        //完成感知、传输
+        if (this.cognitiveRecords != null){
+            if (!this.cognitiveRecords.isComplete()){
+                this.cognitiveRecords.setTimeEnd(this.simulator.getCurTime());
+            }
+        }
+        if (this.transRecords != null){
+            if (!this.transRecords.isComplete()){
+                this.transRecords.setTimeEnd(this.simulator.getCurTime());
+            }
+        }
 
     }
 
@@ -167,6 +214,12 @@ public class SecondaryUser implements InterfacePrintControlRegisterInstance,
         str += "is been occupied.";
         this.printControl.printlnLogicInfo(this, str);
         this.subChannelState[subChannel.getIndexChannel()] = true;
+        if (this.inCognitivePhase){
+            this.cognitiveRecords.getState()[subChannel.getIndexChannel()] = true;
+        }
+        else{
+            this.transRecords.getState()[subChannel.getIndexChannel()] = true;
+        }
     }
 
     @Override
@@ -192,6 +245,23 @@ class EventCognitiveArrive implements EventInterface,InterfacePrintControlRegist
 
     @Override
     public void run() {
+        //添加记录
+        SURecordNode cognitiveRecord = new SURecordNode();
+        cognitiveRecord.setCognitive(true);
+        cognitiveRecord.setTimeStart(this.secondaryUser.getSimulator().getCurTime());
+        cognitiveRecord.setSumSubChannelsNumber(this.secondaryUser.getChannel().getSumSubChannelsNumber());
+        for (int i = 0 ; i < this.secondaryUser.getChannel().getSumSubChannelsNumber() ; i++){
+            cognitiveRecord.setState(i, this.secondaryUser.getChannel().getSubChannel(i).isOccupyState());
+        }
+        if (this.secondaryUser.getRecords() == null){
+            this.secondaryUser.setRecords(cognitiveRecord);
+            this.secondaryUser.setCognitiveRecords(cognitiveRecord);
+        }
+        else{
+            this.secondaryUser.getRecords().addSingleToEnd(cognitiveRecord);
+            this.secondaryUser.setRecords(cognitiveRecord.getEnd());
+            this.secondaryUser.setCognitiveRecords(cognitiveRecord);
+        }
 
         this.secondaryUser.setInCognitivePhase(true);
 
@@ -223,6 +293,19 @@ class EventCognitiveDepart implements EventInterface,InterfacePrintControlRegist
 
     @Override
     public void run() {
+        //完成记录
+        if (this.secondaryUser.getCognitiveRecords() == null){
+            String error = this.getClass().getName();
+            error += " Can't find records.";
+            this.printControl.printlnErrorInfo(this,error);
+        }
+        if (this.secondaryUser.getCognitiveRecords().isComplete()){
+            String error = this.getClass().getName();
+            error += " Record is wrong.";
+            this.printControl.printlnErrorInfo(this,error);
+        }
+        this.secondaryUser.getCognitiveRecords().setTimeEnd(this.secondaryUser.getSimulator().getCurTime());
+
         String str = this.secondaryUser.getSimulator().getCurTime() + "s, ";
         str += "Cognitive Phase ended.";
         this.printControl.printlnLogicInfo(this, str);
@@ -241,6 +324,23 @@ class EventTransArrive implements EventInterface,InterfacePrintControlRegisterIn
 
     @Override
     public void run() {
+        //添加记录
+        SURecordNode transRecord = new SURecordNode();
+        transRecord.setCognitive(false);
+        transRecord.setTimeStart(this.secondaryUser.getSimulator().getCurTime());
+        transRecord.setSumSubChannelsNumber(this.secondaryUser.getChannel().getSumSubChannelsNumber());
+        for (int i = 0 ; i < this.secondaryUser.getChannel().getSumSubChannelsNumber() ; i++){
+            transRecord.setState(i, this.secondaryUser.getChannel().getSubChannel(i).isOccupyState());
+        }
+        if (this.secondaryUser.getRecords() == null){
+            this.secondaryUser.setRecords(transRecord);
+            this.secondaryUser.setTransRecords(transRecord);
+        }
+        else{
+            this.secondaryUser.getRecords().addSingleToEnd(transRecord);
+            this.secondaryUser.setRecords(transRecord.getEnd());
+            this.secondaryUser.setTransRecords(transRecord);
+        }
 
         this.secondaryUser.setInCognitivePhase(false);
 
@@ -273,6 +373,19 @@ class EventTransDepart implements EventInterface,InterfacePrintControlRegisterIn
 
     @Override
     public void run() {
+        //完成记录
+        if (this.secondaryUser.getTransRecords() == null){
+            String error = this.getClass().getName();
+            error += " Can't find records.";
+            this.printControl.printlnErrorInfo(this,error);
+        }
+        if (this.secondaryUser.getTransRecords().isComplete()){
+            String error = this.getClass().getName();
+            error += " Record is wrong.";
+            this.printControl.printlnErrorInfo(this,error);
+        }
+        this.secondaryUser.getTransRecords().setTimeEnd(this.secondaryUser.getSimulator().getCurTime());
+
         String str = this.secondaryUser.getSimulator().getCurTime() + "s, ";
         str += "Transmit Phase ended.";
         this.printControl.printlnLogicInfo(this, str);

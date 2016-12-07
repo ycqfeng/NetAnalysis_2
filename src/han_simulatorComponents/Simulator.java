@@ -31,13 +31,17 @@ public class Simulator implements InterfacePrintControlRegisterInstance {
         Event curEvent;
         double progress;
         double difProgress = 1;
+        long startPoint = System.currentTimeMillis();
+        long endPoint;
         while (!this.isFinish(this.eventQueueHead)){
             this.curTime = this.eventQueueHead.getTimeExecute();
             if (this.stopTime > 0){
                 progress = 100*this.curTime/this.stopTime;
                 if (progress - difProgress > 1){
-                    System.out.println(progress+"%");
+                    endPoint = System.currentTimeMillis();
+                    System.out.println(progress+"%, 耗时："+(endPoint - startPoint)+"ms");
                     difProgress = Math.floor(progress);
+                    startPoint = System.currentTimeMillis();
                 }
             }
             curEvent = this.eventQueueHead;

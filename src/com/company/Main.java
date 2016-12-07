@@ -4,6 +4,7 @@ import han_cognitiveChannel_multi_0_2.Channel;
 import han_cognitiveChannel_multi_0_2.PrimaryUser;
 import han_cognitiveChannel_multi_0_2.SecondaryUser;
 import han_cognitiveChannel_multi_0_2.statsComponent.PURecordNode;
+import han_cognitiveChannel_multi_0_2.statsComponent.SURecordNode;
 import han_cognitiveChannel_multi_0_2.statsComponent.SubChannelRecordNode;
 import han_simulatorComponents.Simulator;
 import printControlComponents.PrintControl;
@@ -12,21 +13,27 @@ public class Main {
 
     public static void main(String[] args) {
 	// write your code here
+        long begin = System.currentTimeMillis(); // 这段代码放在程序执行前
+
         PrintControl printControl = new PrintControl();
 
         Simulator simulator = new Simulator();
         simulator.setPrintControl(printControl);
-        simulator.setStopTime(1000);
+        simulator.setStopTime(1000000);
 
         Channel channel = new Channel(printControl);
         channel.setSimulator(simulator);
-        channel.setChannel(1);
+        channel.setChannel(2);
 
-        PrimaryUser primaryUser = new PrimaryUser(printControl);
-        primaryUser.setSimulator(simulator);
-        primaryUser.setJobQueueLength(0);
-        primaryUser.setParameter(3, 7);
-        primaryUser.setSubChannel(channel, 0);
+        PrimaryUser[] primaryUsers = new PrimaryUser[2];
+        for (int i = 0 ; i < 2 ; i++){
+            primaryUsers[i] = new PrimaryUser(printControl);
+            primaryUsers[i].setSimulator(simulator);
+            primaryUsers[i].setJobQueueLength(0);
+            primaryUsers[i].setParameter(3, 7);
+            primaryUsers[i].setSubChannel(channel, i);
+
+        }
 
         SecondaryUser secondaryUser = new SecondaryUser(printControl);
         secondaryUser.setSimulator(simulator);
@@ -34,8 +41,9 @@ public class Main {
         secondaryUser.setTimeFrame(1);
         secondaryUser.setTimeCognitive(0.2);
 
-        printControl.setPrintLogicInfoState(primaryUser, false);
-        printControl.setPrintLogicInfoState(secondaryUser, true);
+        printControl.setPrintLogicInfoState(primaryUsers[0], false);
+        printControl.setPrintLogicInfoState(primaryUsers[1], false);
+        printControl.setPrintLogicInfoState(secondaryUser, false);
         printControl.setPrintLogicInfoState(secondaryUser.getEventCognitiveArrive(), false);
         printControl.setPrintLogicInfoState(secondaryUser.getEventCognitiveDepart(), false);
         printControl.setPrintLogicInfoState(secondaryUser.getEventTransArrive(), false);
@@ -43,39 +51,46 @@ public class Main {
 
         simulator.start();
 
-        PURecordNode puRecordNode = primaryUser.getRecords();
-        String str;
-        double[] state = new double[10];
-        while (puRecordNode != null){
-            for (int i = 0 ; i < 10 ; i++){
-                if (puRecordNode.getState() == i){
-                    state[i] += puRecordNode.getTimeDuration();
+        SURecordNode suRecordNode = secondaryUser.getRecords().getHead();
+        SURecordNode nextCognitive;
+        int sum_o = 0;
+        int sum_i = 0;
+        int sum_a = 0;
+        int sum_b = 0;
+        while (suRecordNode != null){
+            if (suRecordNode.isCognitive()){
+                nextCognitive = suRecordNode.getNext();
+                while (nextCognitive!=null){
+                    if (nextCognitive.isCognitive()){
+                        break;
+                    }
+                    nextCognitive = nextCognitive.getNext();
+                }
+                if (nextCognitive != null){
+                    if (suRecordNode.getState()[0]){
+                        if (nextCognitive.getState()[0])
+                            sum_o++;
+                        else
+                            sum_i++;
+                    }
+                    else{
+                        if (nextCognitive.getState()[0])
+                            sum_a++;
+                        else
+                            sum_b++;
+                    }
                 }
             }
-            puRecordNode = puRecordNode.getNext();
+            suRecordNode = suRecordNode.getNext();
         }
-        double sum = 0;
-        for (int i = 0 ; i < state.length ; i++){
-            str = "stat("+(i+1)+")="+state[i]+";";
-            sum +=state[i];
-            System.out.println(str);
-        }
-        System.out.println(sum);
 
-        SubChannelRecordNode subChannelRecordNode = channel.getSubChannel(0).getRecords();
-        state = new double[2];
-        while (subChannelRecordNode != null){
-            if (subChannelRecordNode.getOccupyState()){
-                state[0] += subChannelRecordNode.getTimeDuration();
-            }
-            else
-            {
-                state[1] += subChannelRecordNode.getTimeDuration();
-            }
-            subChannelRecordNode = subChannelRecordNode.getNext();
-        }
-        System.out.println(state[0]);
-        System.out.println(state[1]);
+        System.out.println(sum_o);
+        System.out.println(sum_i);
+        System.out.println(sum_a);
+        System.out.println(sum_b);
+        System.out.println(sum_i+sum_o+sum_b+sum_a);
 
+        long end = System.currentTimeMillis() - begin; // 这段代码放在程序执行后
+        System.out.println("耗时：" + end + "毫秒");
     }
 }

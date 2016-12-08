@@ -100,6 +100,7 @@ public class Main {
         System.out.println(sum_i_idle/(double)sum_init_idle);
         System.out.println(sum_i_occupy/(double)sum_init_idle);
 
+        System.out.println("Hello,world!");
 
         long end = System.currentTimeMillis() - begin; // 这段代码放在程序执行后
         System.out.println("耗时：" + end + "毫秒");

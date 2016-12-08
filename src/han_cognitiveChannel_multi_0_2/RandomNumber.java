@@ -6,7 +6,7 @@ import java.util.Random;
  * Created by ycqfeng on 2016/12/6.
  */
 public class RandomNumber {
-    static Random random = new java.util.Random(1);
+    static Random random = new java.util.Random();
     //指数分布
     public static double getRandomExp(double lambda){
         double z;

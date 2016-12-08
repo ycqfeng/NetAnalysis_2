@@ -19,7 +19,7 @@ public class Main {
 
         Simulator simulator = new Simulator();
         simulator.setPrintControl(printControl);
-        simulator.setStopTime(1000000);
+        simulator.setStopTime(100000);
 
         Channel channel = new Channel(printControl);
         channel.setSimulator(simulator);
@@ -85,9 +85,11 @@ public class Main {
         }
 
         System.out.println(sum_o);
+        System.out.println(sum_i/(double)sum_o);
         System.out.println(sum_i);
         System.out.println(sum_a);
         System.out.println(sum_b);
+        System.out.println(sum_b/(double)sum_a);
         System.out.println(sum_i+sum_o+sum_b+sum_a);
 
         long end = System.currentTimeMillis() - begin; // 这段代码放在程序执行后

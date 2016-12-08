@@ -193,7 +193,7 @@ public class SecondaryUser implements InterfacePrintControlRegisterInstance,
 
     @Override
     public void simulatorEnd() {
-        //完成感知、传输
+        //完成感知、传输的记录
         if (this.cognitiveRecords != null){
             if (!this.cognitiveRecords.isComplete()){
                 this.cognitiveRecords.setTimeEnd(this.simulator.getCurTime());
@@ -252,6 +252,7 @@ class EventCognitiveArrive implements EventInterface,InterfacePrintControlRegist
         cognitiveRecord.setSumSubChannelsNumber(this.secondaryUser.getChannel().getSumSubChannelsNumber());
         for (int i = 0 ; i < this.secondaryUser.getChannel().getSumSubChannelsNumber() ; i++){
             cognitiveRecord.setState(i, this.secondaryUser.getChannel().getSubChannel(i).isOccupyState());
+            cognitiveRecord.getInitalState()[i] = this.secondaryUser.getChannel().getSubChannel(i).isOccupyState();
         }
         if (this.secondaryUser.getRecords() == null){
             this.secondaryUser.setRecords(cognitiveRecord);
@@ -331,6 +332,7 @@ class EventTransArrive implements EventInterface,InterfacePrintControlRegisterIn
         transRecord.setSumSubChannelsNumber(this.secondaryUser.getChannel().getSumSubChannelsNumber());
         for (int i = 0 ; i < this.secondaryUser.getChannel().getSumSubChannelsNumber() ; i++){
             transRecord.setState(i, this.secondaryUser.getChannel().getSubChannel(i).isOccupyState());
+            transRecord.getInitalState()[i] = this.secondaryUser.getChannel().getSubChannel(i).isOccupyState();
         }
         if (this.secondaryUser.getRecords() == null){
             this.secondaryUser.setRecords(transRecord);

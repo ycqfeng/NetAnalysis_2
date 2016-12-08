@@ -5,12 +5,17 @@ package han_cognitiveChannel_multi_0_2.statsComponent;
  */
 public class SURecordNode extends StatsNode{
     private boolean[] state;
+    private boolean[] initalState;
     private int sumSubChannelsNumber;
     private double timeStart;
     private double timeEnd;
     private double timeDuration;
     private boolean isComplete;
     private boolean isCognitive;
+
+    public boolean[] getInitalState() {
+        return initalState;
+    }
 
     public boolean isCognitive() {
         return isCognitive;
@@ -35,8 +40,10 @@ public class SURecordNode extends StatsNode{
     public void setSumSubChannelsNumber(int sumSubChannelsNumber) {
         this.sumSubChannelsNumber = sumSubChannelsNumber;
         this.state = new boolean[sumSubChannelsNumber];
+        this.initalState = new boolean[sumSubChannelsNumber];
         for (int i = 0 ; i < sumSubChannelsNumber ; i++){
             this.state[i] = false;
+            this.initalState[i] = false;
         }
     }
 
